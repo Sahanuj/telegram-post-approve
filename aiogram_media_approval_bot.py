@@ -259,7 +259,9 @@ async def approve_all(cb: types.CallbackQuery):
         media.append(m)
 
     await bot.send_media_group(int(MAIN_GROUP_ID), media)
-    await bot.send_message(int(MAIN_GROUP_ID), f"Media submitted by {mention(p['user_id'], p['username'], p['full_name'])}")
+    await bot.send_message(int(MAIN_GROUP_ID), f"Media submitted by {mention(p['user_id'], p['username'], p['full_name'])}",
+                          parse_mode="MarkdownV2"
+                          )
     delete_pending(pid)
     await cb.message.edit_text("Approved & posted")
 
@@ -319,7 +321,9 @@ async def finalize(cb: types.CallbackQuery):
             m = approved[0]
             func = bot.send_photo if isinstance(m, types.InputMediaPhoto) else bot.send_video
             await func(int(MAIN_GROUP_ID), m.media, caption=m.caption or None)
-        await bot.send_message(int(MAIN_GROUP_ID), f"Media submitted by {mention(p['user_id'], p['username'], p['full_name'])}")
+        await bot.send_message(int(MAIN_GROUP_ID), f"Media submitted by {mention(p['user_id'], p['username'], p['full_name'])}",
+                              parse_mode="MarkdownV2"
+                              )
 
     delete_pending(pid)
     selective_selections.pop(pid, None)

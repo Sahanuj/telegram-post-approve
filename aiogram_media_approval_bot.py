@@ -31,7 +31,14 @@ from typing import List, Dict, Optional
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, InputMediaVideo
+from aiogram.types import InlineKeyboardMarkup, # FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup(), InputMediaPhoto, InputMediaVideo
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 
@@ -151,8 +158,29 @@ async def forward_to_approval_group(pending_id: int):
         logger.exception('failed to forward album to approval group: %s', e)
     # Send control message with approve/reject buttons
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton('✅ Approve all', callback_data=f'approve_all:{pending_id}'), InlineKeyboardButton('❌ Reject all', callback_data=f'reject_all:{pending_id}')],
-        [InlineKeyboardButton('✂ Approve selectively', callback_data=f'selective:{pending_id}')]
+        [# FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup()('✅ Approve all', callback_data=f'approve_all:{pending_id}'), # FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup()('❌ Reject all', callback_data=f'reject_all:{pending_id}')],
+        [# FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup()('✂ Approve selectively', callback_data=f'selective:{pending_id}')]
     ])
     await bot.send_message(chat_id=int(APPROVAL_GROUP_ID), text=f'New submission from @{pending["username"]} (id:{pending_id})', reply_markup=kb)
 
@@ -285,7 +313,21 @@ async def cb_selective(callback: types.CallbackQuery):
     for idx, it in enumerate(items):
         # send each item individually with inline approve/reject
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton('✅ Keep', callback_data=f'keep:{pending_id}:{idx}'), InlineKeyboardButton('❌ Remove', callback_data=f'remove:{pending_id}:{idx}')]
+            [# FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup()('✅ Keep', callback_data=f'keep:{pending_id}:{idx}'), # FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup()('❌ Remove', callback_data=f'remove:{pending_id}:{idx}')]
         ])
         try:
             if it['type'] == 'photo':
@@ -318,7 +360,14 @@ async def cb_keep_remove(callback: types.CallbackQuery):
         return
     total = len(pending['payload']['items'])
     if len(sel) == total:
-        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton('✅ Finalize and post approved', callback_data=f'finalize:{pending_id}')]])
+        kb = InlineKeyboardMarkup(inline_keyboard=[[# FIXED: Aiogram v3 uses InlineKeyboardBuilder instead of InlineKeyboardButton
+def build_approval_keyboard(pending_id):
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Approve all", callback_data=f"approve_all:{pending_id}")
+    builder.button(text="❌ Reject all", callback_data=f"reject_all:{pending_id}")
+    builder.adjust(2)
+    return builder.as_markup()('✅ Finalize and post approved', callback_data=f'finalize:{pending_id}')]])
         await bot.send_message(chat_id=int(APPROVAL_GROUP_ID), text=f'All items reviewed for submission {pending_id}. Finalize?', reply_markup=kb)
 
 @dp.callback_query(lambda c: c.data and c.data.startswith('finalize:'))
@@ -363,17 +412,12 @@ async def cb_finalize(callback: types.CallbackQuery):
 if __name__ == '__main__':
     import uvloop
     uvloop.install()
-
-    import asyncio
-
-    async def main():
-        try:
-            print('Starting polling...')
-            await dp.start_polling(bot)
-        except Exception as e:
-            logger.exception('Error starting bot: %s', e)
-
-    asyncio.run(main())
+    try:
+        from aiogram import run_polling
+        print('Starting polling...')
+        run_polling(dp, bot)
+    except Exception as e:
+        logger.exception('Error starting bot: %s', e)
 
 
 # -----------------------------
@@ -395,3 +439,4 @@ if __name__ == '__main__':
 # 3) Run: python aiogram_media_approval_bot.py
 # 4) For production on Railway: push repo, set environment vars on Railway, and use the Procfile above.
 # 5) If you want webhook instead of polling, say so and I'll provide webhook-ready code.
+

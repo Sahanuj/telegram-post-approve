@@ -100,7 +100,11 @@ def delete_pending(pid: int):
     conn.close()
 
 def mention(uid, username, full_name):
-    return f"@{username}" if username else f"[{full_name}](tg://user?id={uid})"
+    if username:
+        return f"@{username}"
+    # Escape special Markdown characters in name
+    escaped_name = full_name.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("]", "\\]").replace("(", "\\(").replace(")", "\\)").replace("~", "\\~").replace("`", "\\`").replace(">", "\\>").replace("#", "\\#").replace("+", "\\+").replace("-", "\\-").replace("=", "\\=").replace("|", "\\|").replace("{", "\\{").replace("}", "\\}").replace(".", "\\.").replace("!", "\\!")
+    return f"[{escaped_name}](tg://user?id={uid})"
 
 # ====================== IN-MEMORY ======================
 media_buffer = {}

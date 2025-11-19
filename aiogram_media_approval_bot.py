@@ -363,12 +363,17 @@ async def cb_finalize(callback: types.CallbackQuery):
 if __name__ == '__main__':
     import uvloop
     uvloop.install()
-    try:
-        from aiogram import run_polling
-        print('Starting polling...')
-        run_polling(dp, bot)
-    except Exception as e:
-        logger.exception('Error starting bot: %s', e)
+
+    import asyncio
+
+    async def main():
+        try:
+            print('Starting polling...')
+            await dp.start_polling(bot)
+        except Exception as e:
+            logger.exception('Error starting bot: %s', e)
+
+    asyncio.run(main())
 
 
 # -----------------------------
